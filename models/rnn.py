@@ -3,7 +3,7 @@ from tensorflow.keras.layers import Embedding, LSTM, GRU, Dense, Flatten
 from tensorflow.keras.regularizers import L1, L2
 
 
-def build_model_gru_01(
+def gru_01(
         input_shape,
         num_outputs,
         gru_units,
@@ -29,3 +29,18 @@ def build_model_gru_01(
     model = Model(inp, out, name="gru_01")
 
     return model
+
+
+if __name__ == "__main__":
+
+    # building test
+    gru_01(
+        gru_units=16,
+        num_outputs=1,
+        input_shape=(32,64),
+        num_hidden_gru=2,
+        return_final_hidden=True,
+        use_embedding=False,
+        #vocab_size=256,
+        #embedding_dim=64,
+    ).summary()
