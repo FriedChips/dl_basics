@@ -5,14 +5,14 @@ from tensorflow.keras.activations import relu, gelu
 from tensorflow.keras.regularizers import L1, L2
 
 
-def mlp_2d_01(
+def mlp_01(
         input_shape,
         layer_units,
-        activation = "relu",
+        activations,
 ):    
-    assert isinstance(layer_units, list)
-    assert len(input_shape) in [2,3]
-    assert activation in ["relu", "gelu", None]
+    assert isinstance(layer_units, list) and isinstance(activations, list)
+    assert len(input_shape) <= 3
+    assert len(layer_units) == len(activations)
 
     inp = Input(shape=input_shape, name="input")
     x = inp
@@ -20,17 +20,18 @@ def mlp_2d_01(
     if len(input_shape) == 2:
         x = tf.expand_dims(x, axis=-1) # required for Conv2D
 
-    for layer, units in enumerate(layer_units):
-        if layer == 0:
+    for layer, (units, act) in enumerate(zip(layer_units, activations)):
+        if (layer == 0) and len(input_shape) > 1:
             x = Conv2D(units, input_shape[:2], name=f"dense_{layer}")(x)
             x = Flatten(name="flatten")(x)
         else:
-            if activation is not None:
-                x = eval(activation)(x)
             x = Dense(units, name=f"dense_{layer}")(x)
+        assert act in ["linear", "relu", "gelu"]
+        if act is not "linear":
+            x = eval(act)(x)
 
     out = x
-    model = Model(inp, out, name="mlp_2d_01")
+    model = Model(inp, out, name="mlp_01")
 
     return model
 
@@ -38,8 +39,8 @@ def mlp_2d_01(
 if __name__ == "__main__":
 
     # building test
-    mlp_2d_01(
+    mlp_01(
         input_shape=(28,28),
         layer_units=[32,16,8],
-        activation="relu",
+        activations=["relu", "linear", "gelu"],
     ).summary()
