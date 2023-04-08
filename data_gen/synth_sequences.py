@@ -2,6 +2,41 @@ import numpy as np
 import tensorflow as tf
 
 
+class SynthNNumbers(tf.keras.utils.Sequence):
+
+    def __init__(self, batch_size, n, operation, limit, distribution, seed=42):
+
+        assert operation in ["plus", "multiply"]
+        assert distribution in ["uniform", "normal"]
+
+        self.batch_size = batch_size
+        self.n = n
+        self.operation = operation
+        self.limit = limit
+        self.distribution = distribution
+        self.rng = np.random.default_rng(seed=seed)
+
+    def __len__(self):
+        # 1 epoch consists of 1 minibatch
+
+        return 1
+
+    def __getitem__(self, idx):
+        # idx is irrelevant but required
+
+        if self.distribution == "uniform":
+            x_batch = self.rng.uniform(-self.limit, self.limit, (self.batch_size, self.n))
+        elif self.distribution == "normal":
+            x_batch = self.rng.normal(0, self.limit, (self.batch_size, self.n))
+
+        if self.operation == "plus":
+            y_batch = np.sum(x_batch, axis=-1)
+        elif self.operation == "multiply":
+            y_batch = np.prod(x_batch, axis=-1)
+        return x_batch.astype(np.float32), y_batch.astype(np.float32)
+
+
+
 class SynthMathData(tf.keras.utils.Sequence):
     """
     - generates minibatches of batch_size samples
@@ -57,7 +92,6 @@ class SynthMathData(tf.keras.utils.Sequence):
 
 
 class SynthCosSimData(tf.keras.utils.Sequence):
-
 
     def __init__(self, batch_size, seq_len, emb_dim, noise_factor=1.0, seed=42):
         
