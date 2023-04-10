@@ -35,6 +35,7 @@ def transformer_01(
         num_heads,
         num_tokens,
         embedding_dim=None,
+        return_final_token_only=False,
 ):
     assert len(input_shape) in [1,2]
 
@@ -45,6 +46,9 @@ def transformer_01(
         x = Embedding(num_tokens, embedding_dim)(x)
     x = transformer_block(x, num_heads=num_heads)
     x = Dense(num_tokens)(x)
+
+    if return_final_token_only:
+        x = x[..., -1, :]
     out = x
 
     model = Model(inp, out)
