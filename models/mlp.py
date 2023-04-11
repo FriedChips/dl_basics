@@ -27,7 +27,7 @@ def mlp_01(
         else:
             x = Dense(units, name=f"dense_{layer}")(x)
         assert act in ["linear", "relu", "gelu"]
-        if act is not "linear":
+        if act != "linear":
             x = eval(act)(x)
 
     out = x
