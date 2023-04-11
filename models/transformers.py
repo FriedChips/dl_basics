@@ -1,4 +1,4 @@
-#import tensorflow as tf
+import tensorflow as tf
 from tensorflow.keras import Model, Input
 from tensorflow.keras.layers import MultiHeadAttention, LayerNormalization, Dense, Embedding
 from tensorflow.keras.activations import relu, gelu
@@ -44,6 +44,7 @@ def transformer_01(
 
     if len(input_shape) == 1:
         x = Embedding(num_tokens, embedding_dim)(x)
+
     x = transformer_block(x, num_heads=num_heads)
     x = Dense(num_tokens)(x)
 
