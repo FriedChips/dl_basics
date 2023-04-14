@@ -34,3 +34,55 @@ class Quadratic(tf.keras.layers.Layer):
         return y
 
 
+
+class Laplace(tf.keras.regularizers.Regularizer):
+
+    def __init__(self, alpha):
+        self.alpha = alpha
+
+    def __call__(self, x):
+        loss = tf.reduce_sum((
+            tf.roll(x, shift=+1, axis=0) +
+            tf.roll(x, shift=-1, axis=0) +
+            tf.roll(x, shift=+1, axis=1) +
+            tf.roll(x, shift=-1, axis=1) -
+            4 * x) ** 2) * self.alpha
+        return loss
+
+    def get_config(self):
+        return {'alpha': self.alpha}
+
+
+
+class SaveWeightsPower2(tf.keras.callbacks.Callback):
+    
+    def __init__(self, run_id):
+        super().__init__()
+        self.run_id = run_id
+
+    def on_train_begin(self, logs=None):
+        self.exponent = 0
+        
+    def on_epoch_end(self, epoch, logs=None):
+        if epoch == 2**self.exponent - 1: # keras internally counts epochs starting from 0
+            self.model.save_weights(os.path.join(RUN_DIR, f"run{self.run_id:03d}-weights-e{epoch+1:05d}.hdf5"))
+            self.exponent += 1
+
+
+
+class LogWeightInfo(tf.keras.callbacks.Callback):
+    
+    def __init__(self, run_id):
+        super().__init__()
+        self.run_id = run_id
+
+    def on_train_begin(self, logs=None):
+        self.exponent = 0
+        
+    def on_epoch_end(self, epoch, logs=None):
+        if epoch == 2**self.exponent - 1: # keras internally counts epochs starting from 0
+            self.model.save_weights(os.path.join(RUN_DIR, f"run{self.run_id:03d}-weights-e{epoch+1:05d}.hdf5"))
+            self.exponent += 1
+
+
+
