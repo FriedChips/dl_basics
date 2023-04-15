@@ -93,13 +93,14 @@ class SaveWeightsPower2(tf.keras.callbacks.Callback):
     def __init__(self, directory):
         super().__init__()
         self.directory = directory
+        os.makedirs(directory, exist_ok=True)
 
     def on_train_begin(self, logs=None):
         self.exponent = 0
         
     def on_epoch_end(self, epoch, logs=None):
         if epoch == 2**self.exponent - 1: # keras internally counts epochs starting from 0
-            self.model.save_weights(os.path.join(directory, f"weights-epoch-{epoch+1:06d}.hdf5"))
+            self.model.save_weights(os.path.join(self.directory, f"weights-epoch-{epoch+1:06d}.hdf5"))
             self.exponent += 1
 
 
