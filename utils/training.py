@@ -112,11 +112,14 @@ class LogWeightNorms(tf.keras.callbacks.Callback):
         super().__init__()
         self.reset_norms()
 
+    def on_train_begin(self, logs=None):
+        self.weight_dims = [ len(w.reshape(-1)) for w in self.model.get_weights() ]
+
     def on_epoch_end(self, epoch, logs=None):
         self.weight_norms.append(self.calc_norms())
 
     def calc_norms(self):
-        return [ np.linalg.norm(w.reshape(-1)) for w in self.model.get_weights() ]
+        return [ np.linalg.norm(w.reshape(-1)) / np.sqrt(d) for w, d in zip(self.model.get_weights(), self.weight_dims) ]
 
     def reset_norms(self):
         self.weight_norms = []
