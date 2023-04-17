@@ -42,7 +42,6 @@ def mlp_01(
                 bias_regularizer=regularizer,
                 name=f"dense_{layer}"
             )(x)
-        #assert act in ["linear", "relu", "gelu"]
         if act != "linear":
             x = eval("tf.keras.activations." + act)(x)
 

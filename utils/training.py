@@ -4,6 +4,7 @@ import json
 import os
 import tensorflow as tf
 import matplotlib.pyplot as plt
+import random as python_random
 
 
 
@@ -130,3 +131,25 @@ class LogWeightNorms(tf.keras.callbacks.Callback):
     
     def norms_to_csv(self, directory):
         self.norms_dataframe().to_csv(os.path.join(directory, "weight_norms.csv"), index=True)
+
+
+
+def tf_keras_random_seed(seed):
+    ''' code from https://keras.io/getting_started/faq/#how-can-i-obtain-reproducible-results-using-keras-during-development '''
+
+    tf.keras.backend.clear_session()
+
+    # The below is necessary for starting Numpy generated random numbers
+    # in a well-defined initial state.
+    np.random.seed(seed)
+
+    # The below is necessary for starting core Python generated random numbers
+    # in a well-defined state.
+    python_random.seed(seed)
+
+    # The below set_seed() will make random number generation
+    # in the TensorFlow backend have a well-defined initial state.
+    # For further details, see:
+    # https://www.tensorflow.org/api_docs/python/tf/random/set_seed
+    tf.random.set_seed(seed)
+
