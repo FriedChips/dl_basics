@@ -5,27 +5,39 @@ from tensorflow.keras.activations import relu, gelu
 from tensorflow.keras.regularizers import L1, L2
 
 
-def transformer_block(inp, num_heads, head_dim=None, mlp_factor=4, layer_norm=False, mlp_act="relu"):
+def transformer_block(
+        input, # shape (sequence_length, embedding_dim)
+        num_heads, # number of attention heads
+        head_dim=None, # width of each head. if None, then set automatically, see below
+        use_mlp=True, # include 2-layer MLP after the attention layer?
+        mlp_factor=4, # width of intermediate MLP layer as a mutiple of embedding_dim
+        mlp_act="relu",
+        layer_norm=False, # use layer normalization?
+        layer_norm_eps = 1e-6,
+        use_bias=True,
+):
 
     assert mlp_act in [ "relu", "gelu" ]
-    embedding_dim = inp.shape[-1]
+    embedding_dim = input.shape[-1]
 
     if head_dim is None:
         head_dim = embedding_dim // num_heads
 
-    x = inp
+    x = input
     if layer_norm:
-        x = LayerNormalization(epsilon=1e-3)(x)
-    x = MultiHeadAttention(num_heads=num_heads, key_dim=head_dim)(x, x)
-    res = x + inp
+        x = LayerNormalization(epsilon=layer_norm_eps)(x)
+    x = MultiHeadAttention(num_heads=num_heads, key_dim=head_dim, use_bias=use_bias)(x, x)
+    res = x + input
 
-    x = res
-    if layer_norm:
-        x = LayerNormalization(epsilon=1e-3)(x)
-    x = Dense(embedding_dim * mlp_factor)(x)
-    x = eval(mlp_act)(x)
-    x = Dense(embedding_dim)(x)
-    out = x + res
+    if use_mlp:
+        x = res
+        if layer_norm:
+            x = LayerNormalization(epsilon=layer_norm_eps)(x)
+        x = Dense(embedding_dim * mlp_factor, activation=mlp_act, use_bias=use_bias)(x)
+        x = Dense(embedding_dim, use_bias=use_bias)(x)
+        out = x + res
+    else:
+        out = res
 
     return out
 
