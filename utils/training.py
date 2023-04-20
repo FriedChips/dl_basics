@@ -56,6 +56,7 @@ class TrainingRun:
     def __init__(self):
 
         self.history = None
+        self.current_epoch = 0
 
 
     def update_history(self, history):
@@ -63,6 +64,7 @@ class TrainingRun:
         self.history = pd.concat([self.history, pd.DataFrame(history.history)], ignore_index=True)
         self.history["epoch"] = self.history.index + 1
         self.history = self.history.set_index("epoch")
+        self.current_epoch = len(self.history)
 
 
     def save_state(self, directory, P, model):
@@ -72,10 +74,7 @@ class TrainingRun:
             json.dump(P, f, indent=3)
         if self.history is not None:
             self.history.to_csv(os.path.join(directory, "train_history.csv"), index=True)
-            current_epoch = len(self.history)
-        else:
-            current_epoch = 0
-        model.save(os.path.join(directory, f"model-epoch-{current_epoch:06d}.hdf5"))
+        model.save(os.path.join(directory, f"model-epoch-{self.current_epoch:06d}.hdf5"))
 
 
     def load_state(self, directory):
@@ -83,8 +82,8 @@ class TrainingRun:
         with open(os.path.join(directory, "P.json"), "r") as f:
             P = json.load(f)
         self.history = pd.read_csv(os.path.join(directory, "train_history.csv"))
-        current_epoch = len(self.history)
-        model = tf.keras.models.load_model(os.path.join(directory, f"model-epoch-{current_epoch:06d}.hdf5"))
+        self.current_epoch = len(self.history)
+        model = tf.keras.models.load_model(os.path.join(directory, f"model-epoch-{self.current_epoch:06d}.hdf5"))
         return P, model
 
 
@@ -94,16 +93,16 @@ class SaveWeightsPower2(tf.keras.callbacks.Callback):
     def __init__(self, directory):
         super().__init__()
         self.directory = directory
-        os.makedirs(directory, exist_ok=True)
 
     def on_train_begin(self, logs=None):
-        self.exponent = 0
+        os.makedirs(self.directory, exist_ok=True)
         
     def on_epoch_end(self, epoch, logs=None):
-        if epoch == 2**self.exponent - 1: # keras internally counts epochs starting from 0
+        if self.is_power_of_two(epoch + 1): # keras internally counts epochs starting from 0
             self.model.save_weights(os.path.join(self.directory, f"weights-epoch-{epoch+1:06d}.hdf5"))
-            self.exponent += 1
 
+    def is_power_of_two(self, n):
+        return (n & (n-1) == 0) and (n != 0)
 
 
 class LogWeightNorms(tf.keras.callbacks.Callback):
