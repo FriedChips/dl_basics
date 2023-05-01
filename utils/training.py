@@ -90,16 +90,18 @@ class TrainingRun:
 
 class SaveWeightsPower2(tf.keras.callbacks.Callback):
     
-    def __init__(self, directory):
+    def __init__(self, directory, save_every=2**20):
         super().__init__()
         self.directory = directory
+        self.save_every = save_every
 
     def on_train_begin(self, logs=None):
         os.makedirs(self.directory, exist_ok=True)
         
     def on_epoch_end(self, epoch, logs=None):
-        if self.is_power_of_two(epoch + 1): # keras internally counts epochs starting from 0
-            self.model.save_weights(os.path.join(self.directory, f"weights-epoch-{epoch+1:06d}.hdf5"))
+        log_epoch = epoch + 1 # Keras internally counts epochs starting from 0
+        if self.is_power_of_two(log_epoch) or (log_epoch % self.save_every == 0):
+            self.model.save_weights(os.path.join(self.directory, f"weights-epoch-{log_epoch:06d}.hdf5"))
 
     def is_power_of_two(self, n):
         return (n & (n-1) == 0) and (n != 0)
