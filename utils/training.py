@@ -9,7 +9,14 @@ import random as python_random
 
 
 class Schedule_ExpCos_Segments:
-    ''' Keras schedule '''
+    '''
+    Keras schedule, see https://keras.io/api/callbacks/learning_rate_scheduler/
+    The exponent of the learning rate varies in segments like a half-period cosine.
+    segment_list : list of segments, each of the form [ exp_start, exp_end, length ]
+    exp_start : lr exponent to base 10 at segment start,
+    exp_end   : lr exponent to base 10 at segment end,
+    length    : segment lenght in epochs
+    '''
 
     def __init__(self, segment_list):
         
@@ -35,19 +42,13 @@ class Schedule_ExpCos_Segments:
 
 
     def plot_schedule(self):
+        ''' visualize/check the schedule with a log plot '''
 
         fig, ax = plt.subplots(1,1, figsize=(5,2))
-        ax.plot(self.schedule);
+        ax.plot(self.schedule)
         ax.set_yscale("log")
-        ax.set_xlabel("epoch");
-        ax.set_ylabel("learning rate");
-
-
-
-def max_abs_error(y_true, y_pred):
-    ''' metric which returns the largest absolute prediction error '''
-
-    return tf.reduce_max(tf.abs(y_true - y_pred), axis=-1)
+        ax.set_xlabel("epoch")
+        ax.set_ylabel("learning rate")
 
 
 
